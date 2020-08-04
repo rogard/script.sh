@@ -1,10 +1,16 @@
 # !/bin/bash
 # Source:
 #       https://github.com/rogard/script.sh
-#
 # Usage:
 #	sendemail.sh ADDRESS SUBJECT GREET FILE_BODY FILE_ATTACH
-#
+# Prompt:
+#	Send
+#	To: -VALUE-
+#	Subject: -VALUE-
+#	Greet: -VALUE-
+#	Body: -VALUE-
+#	Att.: -VALUE-
+#	[y/n]: -VALUE- 
 # Set up:
 #	https://unix.stackexchange.com/questions/595410/troubleshooting-ssmtp-authorization-failed
 
@@ -41,6 +47,7 @@ printf '%s\n' "$FIELD"
 done <<EOF
 To: $ADDRESS
 Greet: $GREET
+Subject: $SUBJECT
 Body: $FIRST_NON_BLANK...
 Att.: $FILE_ATTACH
 EOF
