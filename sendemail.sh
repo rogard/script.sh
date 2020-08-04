@@ -2,7 +2,7 @@
 # Source:
 #       https://github.com/rogard/script.sh
 # Usage:
-#	sendmail.sh ADDRESS GREET SUBJECT FILE_BODY
+#	sendmail.sh ADDRESS SUBJECT GREET FILE_BODY
 # Set up:
 #	https://unix.stackexchange.com/questions/595410/troubleshooting-ssmtp-authorization-failed
 
@@ -15,8 +15,8 @@ else
 fi
 
 ADDRESS="$1"	
-GREET="$2"	
-SUBJECT="$3"	
+SUBJECT="$2"
+GREET="$3"	
 FILE_BODY="4"   
 
 printf '%s,\n' "$GREET" | cat - "$FILE_BODY"\
