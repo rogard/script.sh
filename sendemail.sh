@@ -1,12 +1,14 @@
 # !/bin/bash
 # Source:
 #       https://github.com/rogard/script.sh
+#
 # Usage:
-#	sendmail.sh ADDRESS SUBJECT GREET FILE_BODY
+#	sendemail.sh ADDRESS SUBJECT GREET FILE_BODY FILE_ATTACH
+#
 # Set up:
 #	https://unix.stackexchange.com/questions/595410/troubleshooting-ssmtp-authorization-failed
 
-if [[ "$#" == 4 ]]
+if [[ "$#" == 5 ]]
 then 
     true
 else
@@ -17,9 +19,40 @@ fi
 ADDRESS="$1"	
 SUBJECT="$2"
 GREET="$3"	
-FILE_BODY="4"   
+FILE_BODY="$4"
+FILE_ATTACH="$5"
+FIRST_NON_BLANK=$(awk '/^[^[:space:]]/{print $0; exit}' "$FILE_BODY")
 
-printf '%s,\n' "$GREET" | cat - "$FILE_BODY"\
-    mutt -a "$ATTACH"\
-	 -s "$SUBJECT"\
-	 -- "$ADDR"
+if [[ -n "$FIRST_NON_BLANK" ]]
+then
+    true
+else
+    echo "FAIL $0 #2"
+    exit
+fi    
+
+COLUMNS=$(tput cols)
+printf %"$COLUMNS"s "-" | tr ' ' '-'
+printf '%s\n' 'Send'
+IFS=$'	'
+while read FIELD
+do
+printf '%s\n' "$FIELD"
+done <<EOF
+To: $ADDRESS
+Greet: $GREET
+Body: $FIRST_NON_BLANK...
+Att.: $FILE_ATTACH
+EOF
+
+read -p "[y/n]: " yn
+case $yn in
+    [Yy]*) true  ;;  
+    [Nn]*) echo "Aborted"; exit
+esac
+
+printf '%s,\n' "$GREET"\
+    | cat - "$FILE_BODY"\
+    |     mutt -a "$FILE_ATTACH"\
+	       -s "$SUBJECT"\
+	       -- "$ADDRESS"
