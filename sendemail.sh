@@ -11,6 +11,7 @@ then
     true
 else
     echo "FAIL $0 #1"
+    exit
 fi
 
 ADDRESS="$1"	
