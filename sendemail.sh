@@ -2,7 +2,7 @@
 # Source:
 #       https://github.com/rogard/script.sh
 # Usage:
-#	sendemail.sh ADDRESS SUBJECT GREET FILE_BODY FILE_ATTACH
+#	sendemail.sh TO SUBJECT GREET FILE_BODY FILE_ATTACH
 # Prompt:
 #	Send
 #	To: -VALUE-
@@ -22,7 +22,7 @@ else
     exit
 fi
 
-ADDRESS="$1"	
+TO="$1"	
 SUBJECT="$2"
 GREET="$3"	
 FILE_BODY="$4"
@@ -45,21 +45,24 @@ while read FIELD
 do
 printf '%s\n' "$FIELD"
 done <<EOF
-To: $ADDRESS
+To: $TO
 Greet: $GREET
 Subject: $SUBJECT
 Body: $FIRST_NON_BLANK...
 Att.: $FILE_ATTACH
 EOF
 
-read -p "[y/n]: " yn
-case $yn in
-    [Yy]*) true  ;;  
-    [Nn]*) echo "Aborted"; exit
+printf  "[y/n]: "
+read answer < /dev/tty
+case ${answer:0:1} in
+    y|Y)
+        true ;;
+    *)
+        echo "Aborted"; exit
 esac
 
 printf '%s,\n' "$GREET"\
     | cat - "$FILE_BODY"\
     |     mutt -a "$FILE_ATTACH"\
 	       -s "$SUBJECT"\
-	       -- "$ADDRESS"
+	       -- "$TO"
