@@ -4,39 +4,85 @@
 # Requirement
 #	sendemail.sh in the same directory
 # Usage:
-#	batchemail.sh SUBJECT GREET FILE_TO_GREET FILE_BODY FILE_ATTACH
+#	batchemail.sh [--safe n] FILE
+# To do:
+#	- Flexible field separator
 
-if [[ "$#" == 5 ]]
-then 
-    true
+usage()
+{
+    cat << EOF
+Usage:
+	sendemail.sh [--safe n] FILE
+
+For each ROW in FILE, 
+	- i++<n sendmail.sh --safe ROW
+	- sendmail.sh ROW
+EOF
+}
+
+params="$(getopt -o s:h --long safe,help --name "$(basename "$0")" -- "$@")" #https://stackoverflow.com/a/9274633
+
+EXIT_CODE="$?"
+(( $EXIT_CODE == 0 )) ||  { usage; exit 1; }
+
+eval set -- "$params"
+unset params
+
+#echo "$@"
+
+SAFE_COUNT=0
+DO_SAFE='F'
+while true
+do
+    case $1 in
+	-s|--safe)
+	    DO_SAFE='T'; shift 1;;
+	-h|--help) usage; exit 0 ;;
+	--) shift; break;;
+	*) echo "ABORT, wrong options"; exit 1;;
+    esac
+    #    shift $((OPTIND-1))
+done
+
+if [[ $DO_SAFE == 'T' ]]
+then
+    [[ $1 =~ ^[0-9]+$ ]]\
+	|| ( echo "ABORT, --safe $1 must be non-neg integer"; exit 1 )
+    SAFE_COUNT="$1"
+    shift;
 else
-    echo "FAIL $0 #1"
-    exit
+    true
 fi
+
+[[ $# == 1 ]] || { echo >&2 "ABORT $0 FILE missing "; exit 1; }
+
+FILE="$1" # tested in subprocess
 
 IFS=$'	'
 printf  "Are you OK with IFS=$IFS? [y/n]: "
 read answer < /dev/tty
 case ${answer:0:1} in
     y|Y)
-        echo Yes ;;
+        true ;;
     *)
-        echo No ;;
+        echo "ABORT"; exit 1 ;;
 esac
 
-SOURCE_DIR=$(dirname "$0") # https://stackoverflow.com/questions/59895/how-to-get-the-source-directory-of-a-bash-script-from-within-the-script-itself
-SUBJECT="$1"
-GREET="$2"	
-FILE_TO_GREET="$3"	
-FILE_BODY="$4"
-FILE_ATTACH="$5"
+SOURCE_DIR=$(dirname "$0")
 
-while read TO GREET
+COUNT=0
+while read TO SUBJECT FILE_BODY FILE_ATTACH
 do
-    "$SOURCE_DIR"/sendemail.sh\
-		 "$TO"\
-		 "$SUBJECT"\
-		 "$GREET"\
-		 "$FILE_BODY"\
-		 "$FILE_ATTACH"
-done < "$FILE_TO_GREET"
+    ARGS=($TO $SUBJECT $FILE_BODY $FILE_ATTACH)
+    if (( $COUNT < $SAFE_COUNT )) #FAIL
+    then
+	"$SOURCE_DIR"/sendemail.sh\
+		     --safe \
+		     "${ARGS[@]}"
+	((++COUNT))
+    else
+#	echo "${ARGS[@]}"
+	"$SOURCE_DIR"/sendemail.sh\
+		     "${ARGS[@]}"
+    fi    
+done < "$FILE"

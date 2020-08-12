@@ -12,7 +12,9 @@
 #	[y/n]: -VALUE- 
 # Set up:
 #	https://unix.stackexchange.com/questions/595410/troubleshooting-ssmtp-authorization-failed
-# TODO catch error/break
+# TODO
+#	- flexible field separator
+#	- catch error
 
 #set -euo pipefail
 
@@ -32,8 +34,6 @@ EXIT_CODE="$?"
 eval set -- "$params"
 unset params
 
-#echo "$@"
-
 BOOL_SAFE='F'
 while true
 do
@@ -46,18 +46,21 @@ do
 #    shift $((OPTIND-1))
 done
 
-[[ $# == 4 ]] || { echo "ABORT $0 require \$# == 4, not $#";  exit 1; }
-[[ $1 =~ .+@.+\..+ ]] && TO="$1" || { echo "ABORT $0 TO=$1 not email address";  exit 1; }
-[[ -n "$2" ]] && SUBJECT="$2" || { echo "ABORT $0 SUBJECT=$2 not string";  exit 1; } 
-[[ -f "$3" && -s "$3" ]] && FILE_BODY="$3"  || { echo "ABORT $0 FILE_BODY=$3 not file or empty";  exit 1; }
-[[ -f "$4" && -s "$4" ]] && FILE_ATTACH="$4" || { echo "ABORT $0 $4 not file or empty";  exit 1; }
+[[ $# == 4 ]] || ( echo "ABORT $0 require \$# == 4, not $@ ";  exit 1; )
+[[ $1 =~ .+@.+\..+ ]] && TO="$1" || ( echo "ABORT $0 TO=$1 not email address";  exit 1; )
+[[ -n "$2" ]] && SUBJECT="$2" || ( echo "ABORT $0 SUBJECT=$2 not string";  exit 1; )
+[[ -f "$3" && -s "$3" ]] && FILE_BODY="$3"  || ( echo "ABORT $0 FILE_BODY=$3 not file or empty";  exit 1; )
+[[ -f "$4" && -s "$4" ]] && FILE_ATTACH="$4" || ( echo "ABORT $0 $4 not file or empty";  exit 1; )
 GREET=$(awk '{print; exit}' "$FILE_BODY")
 
 #[[ -n $FIRST_NON_BLANK ]] || {  echo "ABORT $0 #2"; exit 1; }
 
 COLUMNS=$(tput cols)
 printf %"$COLUMNS"s "-" | tr ' ' '-'
-printf '%s\n' "About to send"
+[[ $BOOL_SAFE == 'T' ]] &&\
+   ( printf '%s\n' "About to send" )\
+	||   (  printf '%s\n' "Sending" )\
+       
 IFS=$'	'
 while read FIELD
 do
@@ -69,11 +72,9 @@ Greet: $GREET
 Att.: $FILE_ATTACH
 EOF
 
-#echo "BOOL_SAFE=$BOOL_SAFE"
-
-printf  "Proceed? [y/n]: "
 if [[ "$BOOL_SAFE" == 'T' ]]
 then
+    printf  "Proceed? [y/n]: "
     read answer < /dev/tty
 else
     answer='y'
