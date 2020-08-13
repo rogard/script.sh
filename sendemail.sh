@@ -3,13 +3,8 @@
 #       https://github.com/rogard/script.sh
 # Usage:
 #	sendemail.sh [--safe] TO SUBJECT FILE_BODY FILE_ATTACH
-# Prompt:
-#	Send
-#	To: -VALUE-
-#	Subject: -VALUE-
-#	Greet: -VALUE-
-#	Att.: -VALUE-
-#	[y/n]: -VALUE- 
+# Note:
+#	--safe useful for calling process
 # Set up:
 #	https://unix.stackexchange.com/questions/595410/troubleshooting-ssmtp-authorization-failed
 # TODO
@@ -52,8 +47,6 @@ done
 [[ -f "$3" && -s "$3" ]] && FILE_BODY="$3"  || ( echo "ABORT $0 FILE_BODY=$3 not file or empty";  exit 1; )
 [[ -f "$4" && -s "$4" ]] && FILE_ATTACH="$4" || ( echo "ABORT $0 $4 not file or empty";  exit 1; )
 GREET=$(awk '{print; exit}' "$FILE_BODY")
-
-#[[ -n $FIRST_NON_BLANK ]] || {  echo "ABORT $0 #2"; exit 1; }
 
 COLUMNS=$(tput cols)
 printf %"$COLUMNS"s "-" | tr ' ' '-'
