@@ -1,12 +1,7 @@
 #!/usr/bin/env bash
-# Source:
-#       https://github.com/rogard/script.sh
-# Usage:
-#	sendemail.sh [--safe] TO SUBJECT FILE_BODY FILE_ATTACH
-# Note:
-#	--safe useful for calling process
-# Set up:
-#	https://unix.stackexchange.com/questions/595410/troubleshooting-ssmtp-authorization-failed
+# Usage: sendemail.sh [--safe] TO SUBJECT FILE_BODY FILE_ATTACH
+# Setup: https://unix.stackexchange.com/questions/595410/troubleshooting-ssmtp-authorization-failed
+# Source:  https://github.com/rogard/script.sh
 # TODO
 #	- flexible field separator
 #	- catch error
@@ -16,8 +11,7 @@
 usage()
 {
     cat << EOF
-Usage:
-sendemail.sh [--safe] TO SUBJECT FILE_BODY FILE_ATTACH
+Usage: sendemail.sh [--safe] TO SUBJECT FILE_BODY FILE_ATTACH
 EOF
 }
 
